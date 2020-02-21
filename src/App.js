@@ -6,6 +6,11 @@ class App extends Component {
     super(props)
     this.state = {
       inputValue: '',
+      companiesTemp: '',
+      companiesUrls: [],
+      incomesTemp: [],
+      companies: '',
+      status: 'loading',
     }
   }
 
@@ -14,7 +19,41 @@ class App extends Component {
   }
 
 
+  //function for get data from API
+  componentDidMount() {
+    fetch(`https://recruitment.hal.skygate.io/companies`)
+      .then(resp => resp.json())
+      .then(companiesTemp => {
+        this.setState({ companiesTemp })
+        companiesTemp.map((c) => (
+          this.setState({
+            companiesUrls: this.state.companiesUrls.concat(`https://recruitment.hal.skygate.io/incomes/${c.id}`)
+          })
+        ))
+        Promise.all(this.state.companiesUrls.map(url =>
+          fetch(url)
+            .then(res => res.json())
+            .then(res =>
+
+              this.setState({
+                incomesTemp: this.state.incomesTemp.concat(res)
+              })
+            )
+        ))
+      })
+      .catch(err => console.error(err));
+
+  }
+
   render() {
+
+    // console.log(this.state.incomesTemp)
+    // console.log("hello")
+
+    // console.log(this.state.companiesUrls)
+    // console.log(this.state.incomesTemp)
+
+    // this.state.status === "fetched" ? console.log(this.state.incomesTemp) : null
 
     return (
       <div className="App">
@@ -32,24 +71,17 @@ class App extends Component {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-              <td>6</td>
-            </tr>
-            <tr>
-              <td>1</td>
-              <td>2</td>
-              <td>3</td>
-              <td>4</td>
-              <td>5</td>
-              <td>6</td>
-            </tr>
+            {/* {this.state.companies.length ? this.state.companies.map((company) => (
+              <tr key={company.id}>
+                <td>{company.id}</td>
+                <td>{company.name}</td>
+                <td>{company.city}</td>
+                <td>{company.incomes.value}</td>
+                <td>{company.incomes.value}</td>
+                <td>{company.incomes.value}</td>
+              </tr>)
+            ) : <tr><td>Loading...</td></tr>} */}
           </tbody>
-
         </table>
       </div>
     );
