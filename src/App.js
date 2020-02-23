@@ -6,8 +6,7 @@ class App extends Component {
     super(props)
     this.state = {
       inputValue: '',
-      companiesTemp: '',
-      companiesUrls: [],
+      companiesTemp: [],
       incomesTemp: [],
       companies: '',
       status: 'loading',
@@ -18,42 +17,54 @@ class App extends Component {
     console.log(e.target.value)
   }
 
-
   //function for get data from API
-  componentDidMount() {
-    fetch(`https://recruitment.hal.skygate.io/companies`)
-      .then(resp => resp.json())
-      .then(companiesTemp => {
-        this.setState({ companiesTemp })
-        companiesTemp.map((c) => (
-          this.setState({
-            companiesUrls: this.state.companiesUrls.concat(`https://recruitment.hal.skygate.io/incomes/${c.id}`)
-          })
-        ))
-        Promise.all(this.state.companiesUrls.map(url =>
-          fetch(url)
-            .then(res => res.json())
-            .then(res =>
+  async componentDidMount() {
+    await Promise.allSettled([
+      fetch(`https://recruitment.hal.skygate.io/companies`)
+        .then(resp => resp.json())
+        .then(companiesTemp => {
+          this.setState({ companiesTemp })
+          return companiesTemp
+        })
+        .then(async companiesTemp => {
+          await companiesTemp.map(url =>
+            fetch(`https://recruitment.hal.skygate.io/incomes/${url.id}`)
+              .then(res => res.json())
+              .then(res => (
+                this.setState({
+                  incomesTemp: this.state.incomesTemp.concat(res),
+                })
+              ))
+          )
+        })
+        .then(async () => { await this.setState({ status: "fetched" }) }
+        )
+        .catch(err => console.error(err))
 
-              this.setState({
-                incomesTemp: this.state.incomesTemp.concat(res)
-              })
-            )
-        ))
-      })
-      .catch(err => console.error(err));
+    ])
 
   }
 
+  componentDidUpdate() {
+
+
+    // const companies = (cT, iT) =>
+    // cT.map(itm => ({
+    //     ...iT.find((item) => (item.id === itm.id) && item),
+    //     ...itm
+    // }));
+
+    // this.state.incomesTemp.forEach(id => {
+    //   this.setState({
+    //     companies: this.state.companies.concat(id)
+    //   })
+    // });
+
+  }
+
+  // this.state.status === "fetched" ? console.log(this.state.incomesTemp) : null
+
   render() {
-
-    // console.log(this.state.incomesTemp)
-    // console.log("hello")
-
-    // console.log(this.state.companiesUrls)
-    // console.log(this.state.incomesTemp)
-
-    // this.state.status === "fetched" ? console.log(this.state.incomesTemp) : null
 
     return (
       <div className="App">
@@ -71,7 +82,7 @@ class App extends Component {
             </tr>
           </thead>
           <tbody>
-            {/* {this.state.companies.length ? this.state.companies.map((company) => (
+            {this.state.companies.length ? this.state.companies.map((company) => (
               <tr key={company.id}>
                 <td>{company.id}</td>
                 <td>{company.name}</td>
@@ -80,7 +91,7 @@ class App extends Component {
                 <td>{company.incomes.value}</td>
                 <td>{company.incomes.value}</td>
               </tr>)
-            ) : <tr><td>Loading...</td></tr>} */}
+            ) : <tr><td>Loading...</td></tr>}
           </tbody>
         </table>
       </div>
