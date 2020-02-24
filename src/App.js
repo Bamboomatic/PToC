@@ -8,7 +8,7 @@ class App extends Component {
       inputValue: '',
       companiesTemp: [],
       incomesTemp: [],
-      companies: '',
+      companies: [],
       status: 'loading',
     }
   }
@@ -19,46 +19,42 @@ class App extends Component {
 
   //function for get data from API
   async componentDidMount() {
-    await Promise.allSettled([
-      fetch(`https://recruitment.hal.skygate.io/companies`)
-        .then(resp => resp.json())
-        .then(companiesTemp => {
-          this.setState({ companiesTemp })
-          return companiesTemp
-        })
-        .then(async companiesTemp => {
-          await companiesTemp.map(url =>
-            fetch(`https://recruitment.hal.skygate.io/incomes/${url.id}`)
-              .then(res => res.json())
-              .then(res => (
-                this.setState({
-                  incomesTemp: this.state.incomesTemp.concat(res),
-                })
-              ))
-          )
-        })
-        .then(async () => { await this.setState({ status: "fetched" }) }
+    await fetch(`https://recruitment.hal.skygate.io/companies`)
+      .then(resp => resp.json())
+      .then(companiesTemp => {
+        this.setState({ companiesTemp })
+        return companiesTemp
+      })
+      .then(async companiesTemp => {
+        await companiesTemp.map(url =>
+          fetch(`https://recruitment.hal.skygate.io/incomes/${url.id}`)
+            .then(res => res.json())
+            .then(res => (
+              this.setState({
+                incomesTemp: this.state.incomesTemp.concat(res),
+              })
+            ))
+
         )
-        .catch(err => console.error(err))
-
-    ])
-
+      })
+      .catch(err => console.error(err))
   }
 
   componentDidUpdate() {
+    let cT = this.state.companiesTemp;
+    let iT = this.state.incomesTemp;
+
+    if (this.state.incomesTemp.length === 300) {
+      let companies = cT.map(itm => ({ ...iT.find((item) => (item.id === itm.id) && item), ...itm }));
+      this.setState({ companies, incomesTemp: [], status: "fetched" })
+      console.log(companies)
+    }
+
+    if (this.state.status === "fetched") {
+      console.log("porządek")
+    }
 
 
-    // const companies = (cT, iT) =>
-    // cT.map(itm => ({
-    //     ...iT.find((item) => (item.id === itm.id) && item),
-    //     ...itm
-    // }));
-
-    // this.state.incomesTemp.forEach(id => {
-    //   this.setState({
-    //     companies: this.state.companies.concat(id)
-    //   })
-    // });
 
   }
 
