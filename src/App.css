@@ -21,6 +21,10 @@
   padding: 12px;
 }
 
+th:hover {
+  background-color: floralwhite;
+}
+
 #companies tr {
   border-bottom: 1px solid #ddd;
 }

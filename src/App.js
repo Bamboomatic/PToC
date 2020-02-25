@@ -10,11 +10,9 @@ class App extends Component {
       incomesTemp: [],
       companies: [],
       status: 'loading',
+      sortedAsc: false,
+      lastSorted: '',
     }
-  }
-
-  filteringHandler = (e) => {
-    console.log(e.target.value)
   }
 
   //function for get data from API
@@ -34,7 +32,6 @@ class App extends Component {
                 incomesTemp: this.state.incomesTemp.concat(res),
               })
             ))
-
         )
       })
       .catch(err => console.error(err))
@@ -43,7 +40,6 @@ class App extends Component {
   componentDidUpdate() {
     const cT = this.state.companiesTemp;
     const iT = this.state.incomesTemp;
-    const companies = this.state.companies;
 
     if (this.state.incomesTemp.length === 300) {
       let companies = iT.map(
@@ -56,7 +52,7 @@ class App extends Component {
 
       const today = new Date();
       let lastMonth = today.getMonth() === 0 ? 12 : (today.getMonth() > 9 ? today.getMonth() : "0" + today.getMonth())
-      let year = today.getFullYear();
+      let yearOfLastMonth = (lastMonth === 12) ? today.getFullYear() - 1 : today.getFullYear();
 
       companies = companies.map(
         c => (
@@ -68,7 +64,7 @@ class App extends Component {
               return prev + parseFloat(cur.value);
             }, 0)) / c.incomes.length).toFixed(2),
             last: c.incomes.reduce(function (prev, curr) {
-              if (curr.date.includes(year + "-" + lastMonth)) {
+              if (curr.date.includes(yearOfLastMonth + "-" + lastMonth)) {
                 return prev + parseFloat(curr.value)
               }
               else { return prev }
@@ -77,25 +73,46 @@ class App extends Component {
           }
         )
       )
-
-
-      console.log(lastMonth)
-
-
-
       this.setState({ companies, incomesTemp: [], status: "fetched" })
     }
 
     if (this.state.status === "fetched") {
-      console.log(companies)
+
     }
-
-
-
-
-
   }
 
+  filteringHandler = (e) => {
+    console.log(e.target.value)
+  }
+
+  customSorting = (e) => {
+    if (this.state.sortedAsc && this.state.lastSorted === e) {
+      if (e === "name" || e === "city") {
+        this.setState({ sortedAsc: false, lastSorted: e })
+        return (a, b) => (a[e] > b[e]) ? -1 : 1
+      }
+      else {
+        this.setState({ sortedAsc: false, lastSorted: e })
+        return (a, b) => { return b[e] - a[e] }
+      }
+
+    }
+    else {
+      if (e === "name" || e === "city") {
+        this.setState({ sortedAsc: true, lastSorted: e })
+        return (a, b) => (a[e] > b[e]) ? 1 : -1
+      }
+      else {
+        this.setState({ sortedAsc: true, lastSorted: e })
+        return (a, b) => { return a[e] - b[e] }
+      }
+    }
+  }
+
+  sortingHandler = (e) => {
+    let tempId = e.target.id
+    this.setState({ companies: this.state.companies.sort(this.customSorting(tempId)) })
+  }
   // this.state.status === "fetched" ? console.log(this.state.incomesTemp) : null
 
   render() {
@@ -106,13 +123,13 @@ class App extends Component {
 
         <table id="companies">
           <thead className="header">
-            <tr>
-              <td>id</td>
-              <td>name</td>
-              <td>city</td>
-              <td>total income</td>
-              <td>avarage income</td>
-              <td>last month income</td>
+            <tr >
+              <th id="id" onClick={e => this.sortingHandler(e)}>id</th>
+              <th id="name" onClick={e => this.sortingHandler(e)}>name</th>
+              <th id="city" onClick={e => this.sortingHandler(e)}>city</th>
+              <th id="total" onClick={e => this.sortingHandler(e)}>total income</th>
+              <th id="avarage" onClick={e => this.sortingHandler(e)}>avarage income</th>
+              <th id="last" onClick={e => this.sortingHandler(e)}>last month income</th>
             </tr>
           </thead>
           <tbody>
