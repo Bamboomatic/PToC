@@ -41,18 +41,56 @@ class App extends Component {
   }
 
   componentDidUpdate() {
-    let cT = this.state.companiesTemp;
-    let iT = this.state.incomesTemp;
+    const cT = this.state.companiesTemp;
+    const iT = this.state.incomesTemp;
+    const companies = this.state.companies;
 
     if (this.state.incomesTemp.length === 300) {
-      let companies = cT.map(itm => ({ ...iT.find((item) => (item.id === itm.id) && item), ...itm }));
+      let companies = iT.map(
+        inT => ({
+          ...cT.find(
+            (incom) => (incom.id === inT.id) && incom
+          ), ...inT
+        })
+      );
+
+      const today = new Date();
+      let lastMonth = today.getMonth() === 0 ? 12 : (today.getMonth() > 9 ? today.getMonth() : "0" + today.getMonth())
+      let year = today.getFullYear();
+
+      companies = companies.map(
+        c => (
+          {
+            total: c.incomes.reduce(function (prev, cur) {
+              return prev + parseFloat(cur.value);
+            }, 0).toFixed(2),
+            avarage: ((c.incomes.reduce(function (prev, cur) {
+              return prev + parseFloat(cur.value);
+            }, 0)) / c.incomes.length).toFixed(2),
+            last: c.incomes.reduce(function (prev, curr) {
+              if (curr.date.includes(year + "-" + lastMonth)) {
+                return prev + parseFloat(curr.value)
+              }
+              else { return prev }
+            }, 0).toFixed(2),
+            ...c
+          }
+        )
+      )
+
+
+      console.log(lastMonth)
+
+
+
       this.setState({ companies, incomesTemp: [], status: "fetched" })
-      console.log(companies)
     }
 
     if (this.state.status === "fetched") {
-      console.log("porządek")
+      console.log(companies)
     }
+
+
 
 
 
@@ -83,9 +121,9 @@ class App extends Component {
                 <td>{company.id}</td>
                 <td>{company.name}</td>
                 <td>{company.city}</td>
-                <td>{company.incomes.value}</td>
-                <td>{company.incomes.value}</td>
-                <td>{company.incomes.value}</td>
+                <td>{company.total}</td>
+                <td>{company.avarage}</td>
+                <td>{company.last}</td>
               </tr>)
             ) : <tr><td>Loading...</td></tr>}
           </tbody>
