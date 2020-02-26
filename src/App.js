@@ -40,7 +40,6 @@ class App extends Component {
   componentDidUpdate() {
     const cT = this.state.companiesTemp;
     const iT = this.state.incomesTemp;
-
     if (this.state.incomesTemp.length === 300) {
       let companies = iT.map(
         inT => ({
@@ -75,14 +74,25 @@ class App extends Component {
       )
       this.setState({ companies, incomesTemp: [], status: "fetched" })
     }
+  }
 
-    if (this.state.status === "fetched") {
-
+  debounce(func, delay) {
+    let inDebounce
+    return function () {
+      const context = this
+      const args = arguments
+      clearTimeout(inDebounce)
+      inDebounce = setTimeout(() => func.apply(context, args), delay)
     }
   }
 
-  filteringHandler = (e) => {
-    console.log(e.target.value)
+  filteringHandler = this.debounce(input => {
+    this.setState({ inputValue: input.toLowerCase() })
+  }, 250)
+
+  sortingHandler = (e) => {
+    let tempId = e.target.id
+    this.setState({ companies: this.state.companies.sort(this.customSorting(tempId)) })
   }
 
   customSorting = (e) => {
@@ -109,17 +119,49 @@ class App extends Component {
     }
   }
 
-  sortingHandler = (e) => {
-    let tempId = e.target.id
-    this.setState({ companies: this.state.companies.sort(this.customSorting(tempId)) })
+  contentLoader = () => {
+    let input = this.state.inputValue;
+    if (input === '') {
+      return this.state.companies.map((company) => (
+        <tr key={company.id}>
+          <td>{company.id}</td>
+          <td>{company.name}</td>
+          <td>{company.city}</td>
+          <td>{company.total}</td>
+          <td>{company.avarage}</td>
+          <td>{company.last}</td>
+        </tr>)
+      )
+    }
+
+    return this.state.companies
+      .filter(function (condition) {
+        return (condition.id.toString().includes(input) ||
+          condition.name.toLowerCase().includes(input) ||
+          condition.city.toLowerCase().includes(input) ||
+          condition.total.toString().includes(input) ||
+          condition.avarage.toString().includes(input) ||
+          condition.last.toString().includes(input))
+      })
+      .map((company) => (
+        <tr key={company.id}>
+          <td>{company.id}</td>
+          <td>{company.name}</td>
+          <td>{company.city}</td>
+          <td>{company.total}</td>
+          <td>{company.avarage}</td>
+          <td>{company.last}</td>
+        </tr>)
+      )
+
+
   }
-  // this.state.status === "fetched" ? console.log(this.state.incomesTemp) : null
 
   render() {
 
     return (
       <div className="App">
-        <input type="text" className="input" onKeyUp={e => this.filteringHandler(e)} placeholder="Search for anything" />
+        <input type="text" className="input" onKeyUp={e => this.filteringHandler(e.target.value)} placeholder="Search for anything" />
 
         <table id="companies">
           <thead className="header">
@@ -133,16 +175,7 @@ class App extends Component {
             </tr>
           </thead>
           <tbody>
-            {this.state.companies.length ? this.state.companies.map((company) => (
-              <tr key={company.id}>
-                <td>{company.id}</td>
-                <td>{company.name}</td>
-                <td>{company.city}</td>
-                <td>{company.total}</td>
-                <td>{company.avarage}</td>
-                <td>{company.last}</td>
-              </tr>)
-            ) : <tr><td>Loading...</td></tr>}
+            {this.state.companies.length ? this.contentLoader() : <tr><td>Loading...</td></tr>}
           </tbody>
         </table>
       </div>
