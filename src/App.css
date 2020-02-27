@@ -3,17 +3,18 @@
   background-position: 10px 12px;
   background-repeat: no-repeat;
   width: 100%;
-  font-size: 16px;
+  font-size: calc(0.6em + 1vmin);
   padding: 12px 20px 12px 40px;
   border: 1px solid #ddd;
-  margin-bottom: 12px;
+  margin-bottom: 0.8em;
 }
 
 #companies {
   border-collapse: collapse;
-  width: 100%;
+  width: 95%;
+  margin: 0 auto;
   border: 1px solid #ddd;
-  font-size: 18px;
+  font-size: calc(0.8em + 1vmin);
 }
 
 #companies th, #companies td {
@@ -31,4 +32,41 @@ th:hover {
 
 #companies tr.header, #companies tr:hover {
   background-color: #f1f1f1;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.pagination li {
+  list-style-type: none;
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  font-size: calc(0.8em + 1vmin);
+}
+
+.pagination li.active {
+  background-color: rgb(15, 214, 198);
+  color: white;
+}
+
+.pagination li:hover:not(.active) {
+  background-color: #ddd;
+}
+
+@media (max-width: 640px) {
+  .input {
+    font-size: calc(0.3em + 1vmin);
+  }
+  .companies {
+    font-size: calc(0.3em + 1vmin);
+  }
+  .pagination li {
+    font-size: calc(0.3em + 1vmin);
+  }
 }

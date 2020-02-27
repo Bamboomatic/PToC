@@ -12,6 +12,10 @@ class App extends Component {
       status: 'loading',
       sortedAsc: false,
       lastSorted: '',
+      currentPage: 1,
+      numberOfPages: 10,
+      numberOfRows: 300,
+      prevPage: 1,
     }
   }
 
@@ -75,7 +79,13 @@ class App extends Component {
       this.setState({ companies, incomesTemp: [], status: "fetched" })
     }
   }
+  handlePages = (e) => {
 
+    document.getElementById(this.state.prevPage).classList.remove("active");
+    e.target.className += " active";
+
+    this.setState({ currentPage: e.target.id, prevPage: e.target.id });
+  }
   debounce(func, delay) {
     let inDebounce
     return function () {
@@ -87,12 +97,11 @@ class App extends Component {
   }
 
   filteringHandler = this.debounce(input => {
-    this.setState({ inputValue: input.toLowerCase() })
+    this.setState({ inputValue: input.toLowerCase(), currentPage: 1 })
   }, 250)
 
   sortingHandler = (e) => {
-    let tempId = e.target.id
-    this.setState({ companies: this.state.companies.sort(this.customSorting(tempId)) })
+    this.setState({ companies: this.state.companies.sort(this.customSorting(e)) })
   }
 
   customSorting = (e) => {
@@ -120,44 +129,74 @@ class App extends Component {
   }
 
   contentLoader = () => {
+    this.state.prevPage === 1 && this.state.currentPage === 1 ? (document.getElementById("1").className += " active") : console.log();
     let input = this.state.inputValue;
+    let start = (30 * (this.state.currentPage - 1));
+    let end = (30 * (this.state.currentPage))
+
     if (input === '') {
-      return this.state.companies.map((company) => (
-        <tr key={company.id}>
-          <td>{company.id}</td>
-          <td>{company.name}</td>
-          <td>{company.city}</td>
-          <td>{company.total}</td>
-          <td>{company.avarage}</td>
-          <td>{company.last}</td>
-        </tr>)
-      )
+      let content = this.state.companies.slice(start, end)
+        .map((company) => (
+          <tr key={company.id}>
+            <td>{company.id}</td>
+            <td>{company.name}</td>
+            <td>{company.city}</td>
+            <td>{company.total}</td>
+            <td>{company.avarage}</td>
+            <td>{company.last}</td>
+          </tr>
+        ))
+      return content
     }
 
-    return this.state.companies
-      .filter(function (condition) {
-        return (condition.id.toString().includes(input) ||
-          condition.name.toLowerCase().includes(input) ||
-          condition.city.toLowerCase().includes(input) ||
-          condition.total.toString().includes(input) ||
-          condition.avarage.toString().includes(input) ||
-          condition.last.toString().includes(input))
-      })
-      .map((company) => (
-        <tr key={company.id}>
-          <td>{company.id}</td>
-          <td>{company.name}</td>
-          <td>{company.city}</td>
-          <td>{company.total}</td>
-          <td>{company.avarage}</td>
-          <td>{company.last}</td>
-        </tr>)
-      )
+    else {
 
+      let content = this.state.companies
+        .filter(function (condition) {
+          return (condition.id.toString().includes(input) ||
+            condition.name.toLowerCase().includes(input) ||
+            condition.city.toLowerCase().includes(input) ||
+            condition.total.toString().includes(input) ||
+            condition.avarage.toString().includes(input) ||
+            condition.last.toString().includes(input))
+        })
+        .map((company) => (
+          <tr key={company.id}>
+            <td>{company.id}</td>
+            <td>{company.name}</td>
+            <td>{company.city}</td>
+            <td>{company.total}</td>
+            <td>{company.avarage}</td>
+            <td>{company.last}</td>
+          </tr>
+        ))
 
+      return content
+    }
   }
 
+
+
   render() {
+
+    const pageNumbers = [];
+    for (let i = 1; i <= this.state.numberOfPages; i++) {
+      pageNumbers.push(i);
+    }
+    const renderPageNumbers = pageNumbers.map(number => {
+      return (
+        <li
+          className="pageBtn"
+          key={number}
+          id={number}
+          onClick={this.handlePages}
+        >
+          {number}
+        </li>
+      );
+    });
+
+
 
     return (
       <div className="App">
@@ -166,18 +205,22 @@ class App extends Component {
         <table id="companies">
           <thead className="header">
             <tr >
-              <th id="id" onClick={e => this.sortingHandler(e)}>id</th>
-              <th id="name" onClick={e => this.sortingHandler(e)}>name</th>
-              <th id="city" onClick={e => this.sortingHandler(e)}>city</th>
-              <th id="total" onClick={e => this.sortingHandler(e)}>total income</th>
-              <th id="avarage" onClick={e => this.sortingHandler(e)}>avarage income</th>
-              <th id="last" onClick={e => this.sortingHandler(e)}>last month income</th>
+              <th id="id" onClick={e => this.sortingHandler(e.target.id)}>id</th>
+              <th id="name" onClick={e => this.sortingHandler(e.target.id)}>name</th>
+              <th id="city" onClick={e => this.sortingHandler(e.target.id)}>city</th>
+              <th id="total" onClick={e => this.sortingHandler(e.target.id)}>total income</th>
+              <th id="avarage" onClick={e => this.sortingHandler(e.target.id)}>avarage income</th>
+              <th id="last" onClick={e => this.sortingHandler(e.target.id)}>last month income</th>
             </tr>
           </thead>
           <tbody>
             {this.state.companies.length ? this.contentLoader() : <tr><td>Loading...</td></tr>}
           </tbody>
         </table>
+        <nav className="pagination">
+          {!this.state.inputValue ? renderPageNumbers : null}
+        </nav>
+
       </div>
     );
   }
