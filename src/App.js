@@ -41,6 +41,7 @@ class App extends Component {
       .catch(err => console.error(err))
   }
 
+  //building data from fetch, calculation variables
   componentDidUpdate() {
     const cT = this.state.companiesTemp;
     const iT = this.state.incomesTemp;
@@ -79,6 +80,8 @@ class App extends Component {
       this.setState({ companies, incomesTemp: [], status: "fetched" })
     }
   }
+
+  // a little styling for pagination navigation
   handlePages = (e) => {
 
     document.getElementById(this.state.prevPage).classList.remove("active");
@@ -86,6 +89,8 @@ class App extends Component {
 
     this.setState({ currentPage: e.target.id, prevPage: e.target.id });
   }
+
+  //setting out debouncer just for cutting number of operations
   debounce(func, delay) {
     let inDebounce
     return function () {
@@ -96,14 +101,17 @@ class App extends Component {
     }
   }
 
+  // getting value from input button
   filteringHandler = this.debounce(input => {
     this.setState({ inputValue: input.toLowerCase(), currentPage: 1 })
   }, 250)
 
+  // filtering rule
   sortingHandler = (e) => {
     this.setState({ companies: this.state.companies.sort(this.customSorting(e)) })
   }
 
+  // filtering algorithm
   customSorting = (e) => {
     if (this.state.sortedAsc && this.state.lastSorted === e) {
       if (e === "name" || e === "city") {
@@ -128,6 +136,7 @@ class App extends Component {
     }
   }
 
+  //building pagination buttons and content
   contentLoader = () => {
     this.state.prevPage === 1 && this.state.currentPage === 1 ? (document.getElementById("1").className += " active") : console.log();
     let input = this.state.inputValue;
